@@ -1,11 +1,50 @@
 [
   {
-    "name": "example",
-    "title": "TODO(author): the first document this industry must produce",
-    "for_each": "select gen_random_uuid() as id, 'Example' as name",
-    "file": "name",
+    "name": "permit",
+    "title": "Permit to work",
+    "for_each": "select p.id, p.code || ' ' || k.name as label from ptw.permits p join ptw.permit_kinds k on k.code = p.kind where p.status in ('issued', 'suspended', 'requested') or p.closed_at >= ptw.site_now() - interval '30 days' order by p.code",
+    "file": "label",
     "sections": [
-      { "title": "Details", "sql": "select 'replace me' as item, $1::text as record_id" }
+      { "title": "Permit", "layout": "record", "sql": "select p.code permit, k.name kind, ar.name area, coalesce(a.code || ' ' || a.name, '') equipment, p.task work, coalesce(p.risk_ref, '') risk_assessment, p.status, coalesce(iss.name, '') issuer, coalesce(rq.name, '') receiver, coalesce(sb.name, '') standby, to_char(p.valid_from, 'YYYY-MM-DD HH24:MI') valid_from, to_char(p.valid_to, 'YYYY-MM-DD HH24:MI') valid_to, coalesce(to_char(p.issued_at, 'YYYY-MM-DD HH24:MI'), '') issued_at from ptw.permits p join ptw.permit_kinds k on k.code = p.kind join ptw.areas ar on ar.id = p.area_id left join ptw.assets a on a.id = p.asset_id left join ptw.people iss on iss.id = p.issuer_id left join ptw.people rq on rq.id = p.receiver_id left join ptw.people sb on sb.id = p.standby_id where p.id = $1" },
+      { "title": "Controls this permit needs", "layout": "record", "sql": "select case when k.needs_isolation or p.isolation_required then 'Yes, verified before work' else 'No' end isolation, case when k.needs_gas_test then 'Yes, every ' || (select gas_retest_minutes from ptw.settings) || ' minutes' else 'No' end gas_test, case when k.needs_standby then 'Yes: ' || coalesce(p.rescue_plan, 'NO RESCUE PLAN') else 'No' end standby_and_rescue, case when k.needs_fire_watch then (select fire_watch_minutes from ptw.settings) || ' minutes after the work stops' else 'No' end fire_watch, coalesce(tk.name, 'None') crew_ticket from ptw.permits p join ptw.permit_kinds k on k.code = p.kind left join ptw.ticket_kinds tk on tk.code = k.crew_ticket where p.id = $1" },
+      { "title": "Crew signed on", "note": "Signing on means you have read this permit and accept its controls.", "sql": "select pe.name, c.name company, to_char(pc.on_at, 'YYYY-MM-DD HH24:MI') signed_on, coalesce(to_char(pc.off_at, 'YYYY-MM-DD HH24:MI'), '') signed_off from ptw.permit_crew pc join ptw.people pe on pe.id = pc.person_id join ptw.companies c on c.id = pe.company_id where pc.permit_id = $1 order by pc.on_at, pe.name" },
+      { "title": "Isolations", "sql": "select i.code isolation, pt.code point, pt.energy, pt.device, l.lock_no, i.status from ptw.permit_isolations pi join ptw.isolations i on i.id = pi.isolation_id join ptw.isolation_lines l on l.isolation_id = i.id join ptw.isolation_points pt on pt.id = l.point_id where pi.permit_id = $1 order by i.code, pt.code" },
+      { "title": "Gas tests", "sql": "select to_char(g.tested_at, 'YYYY-MM-DD HH24:MI') tested_at, pe.name tester, coalesce(g.location, '') location, g.o2_pct o2_pct, g.lel_pct lel_pct, g.h2s_ppm h2s_ppm, g.co_ppm co_ppm from ptw.gas_tests g join ptw.people pe on pe.id = g.tester_id where g.permit_id = $1 order by g.tested_at" },
+      { "title": "Close-out", "layout": "record", "sql": "select coalesce(to_char(p.work_ended_at, 'YYYY-MM-DD HH24:MI'), '') tools_down, coalesce(to_char(p.fire_watch_end_at, 'YYYY-MM-DD HH24:MI'), '') fire_watch_ended, coalesce(to_char(p.closed_at, 'YYYY-MM-DD HH24:MI'), '') closed_at, coalesce(cb.name, '') closed_by, coalesce(p.handback, '') area_handed_back from ptw.permits p left join ptw.people cb on cb.id = p.closed_by where p.id = $1" }
+    ]
+  },
+  {
+    "name": "isolation-certificate",
+    "title": "Isolation certificate",
+    "for_each": "select i.id, i.code || ' ' || a.name as label from ptw.isolations i join ptw.assets a on a.id = i.asset_id where i.status <> 'removed' or i.removed_at >= ptw.site_now() - interval '30 days' order by i.code",
+    "file": "label",
+    "sections": [
+      { "title": "Isolation", "layout": "record", "sql": "select s.code isolation, s.asset || ' ' || s.asset_name equipment, s.area, s.status, s.isolator, to_char(s.applied_at, 'YYYY-MM-DD HH24:MI') applied_at, coalesce(s.verified_by, '') proved_dead_by, coalesce(to_char(s.verified_at, 'YYYY-MM-DD HH24:MI'), '') proved_dead_at, coalesce((select verify_note from ptw.isolations where id = $1), '') how_proved, coalesce(s.lockbox, '') lockbox from ptw.isolation_state s where s.id = $1" },
+      { "title": "Isolation points", "note": "Every energy source on the equipment. A point with no lock is still live.", "sql": "select pt.code point, pt.energy, pt.device, pt.method, coalesce(l.lock_no, 'NOT LOCKED') lock_no, pt.verify from ptw.isolations i join ptw.isolation_points pt on pt.asset_id = i.asset_id left join ptw.isolation_lines l on l.isolation_id = i.id and l.point_id = pt.id where i.id = $1 order by pt.code" },
+      { "title": "Personal locks", "note": "Each person removes only their own lock.", "sql": "select pe.name, c.name company, pl.lock_no, to_char(pl.on_at, 'YYYY-MM-DD HH24:MI') on_at, coalesce(to_char(pl.off_at, 'YYYY-MM-DD HH24:MI'), 'ON') off_at from ptw.personal_locks pl join ptw.people pe on pe.id = pl.person_id join ptw.companies c on c.id = pe.company_id where pl.isolation_id = $1 order by pl.on_at" },
+      { "title": "Permits relying on this isolation", "sql": "select p.code, p.kind, p.status, p.task from ptw.permit_isolations pi join ptw.permits p on p.id = pi.permit_id where pi.isolation_id = $1 order by p.code" }
+    ]
+  },
+  {
+    "name": "entry-log",
+    "title": "Confined space entry log",
+    "for_each": "select p.id, p.code || ' ' || coalesce(a.name, 'entry') as label from ptw.permits p left join ptw.assets a on a.id = p.asset_id where p.kind = 'confined_space' and p.status <> 'cancelled' and (ptw.is_open(p.status) or p.closed_at >= ptw.site_now() - interval '30 days') order by p.code",
+    "file": "label",
+    "sections": [
+      { "title": "Entry", "layout": "record", "sql": "select p.code permit, coalesce(a.name, '') space, p.task work, coalesce(sb.name, 'NONE') standby, coalesce(p.rescue_plan, 'NONE') rescue_plan, p.status from ptw.permits p left join ptw.assets a on a.id = p.asset_id left join ptw.people sb on sb.id = p.standby_id where p.id = $1" },
+      { "title": "In and out", "sql": "select pe.name, c.name company, to_char(e.in_at, 'YYYY-MM-DD HH24:MI') went_in, coalesce(to_char(e.out_at, 'YYYY-MM-DD HH24:MI'), 'INSIDE') came_out from ptw.entries e join ptw.people pe on pe.id = e.person_id join ptw.companies c on c.id = pe.company_id where e.permit_id = $1 order by e.in_at" },
+      { "title": "Atmosphere", "note": "Limits are in the gas_limits table, with their sources.", "sql": "select to_char(g.tested_at, 'YYYY-MM-DD HH24:MI') tested_at, pe.name tester, coalesce(g.location, '') location, g.o2_pct o2_pct, g.lel_pct lel_pct, g.h2s_ppm h2s_ppm, g.co_ppm co_ppm, case when g.bump_tested then 'yes' else 'no' end bump_tested from ptw.gas_tests g join ptw.people pe on pe.id = g.tester_id where g.permit_id = $1 order by g.tested_at" }
+    ]
+  },
+  {
+    "name": "contractor-record",
+    "title": "Contractor compliance record",
+    "for_each": "select id, code || ' ' || name as label from ptw.companies where kind = 'contractor' order by code",
+    "file": "label",
+    "sections": [
+      { "title": "Company", "layout": "record", "sql": "select name, contact, email, phone, coalesce(insurance_expires_on::text, 'NONE ON FILE') insurance_to, coalesce(prequalified_on::text, 'not prequalified') prequalified_on from ptw.companies where id = $1" },
+      { "title": "People, tickets and inductions", "sql": "select ts.person, ts.ticket, coalesce(ts.ref, '') ref, coalesce(ts.expires_on::text, '') expires_on, ts.state from ptw.ticket_status ts join ptw.people p on p.id = ts.person_id where p.company_id = $1 order by ts.person, ts.ticket" },
+      { "title": "Permits in the last 90 days", "sql": "select distinct pm.code, pm.kind, pm.status, pm.task from ptw.permits pm join ptw.people p on p.company_id = $1 where pm.valid_from >= ptw.site_now() - interval '90 days' and (pm.receiver_id = p.id or exists (select 1 from ptw.permit_crew pc where pc.permit_id = pm.id and pc.person_id = p.id)) order by pm.code" }
     ]
   }
 ]

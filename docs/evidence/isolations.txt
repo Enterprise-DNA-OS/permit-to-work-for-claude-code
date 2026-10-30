@@ -1,0 +1,6 @@
+  code     asset  asset name         area  status    isolator      verified by   points locked  personal locks on  open permits  hours isolated  lockbox
+  -------  -----  -----------------  ----  --------  ------------  ------------  -------------  -----------------  ------------  --------------  -------
+  ISO-305  RM1    Roller mill 1      MILL  verified  Sione Fifita  Sione Fifita  2 of 2                         1                          32.5  LB-2   
+  ISO-310  BE2    Bucket elevator 2  SILO  applied   Raj Patel                   2 of 2                         1  P-2044                  20.5  LB-1   
+  ISO-311  SIL3   Wheat silo 3       SILO  verified  Sione Fifita  Sione Fifita  2 of 3                         3  P-2041                   4.5  LB-3   
+  ISO-312  PK1    Bagging line 1     PACK  verified  Kiri Ngata    Kiri Ngata    2 of 2                         1  P-2045                   6.3  LB-4   

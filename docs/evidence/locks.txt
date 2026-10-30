@@ -1,0 +1,8 @@
+  isolation  asset  person        company                           lock no  on at             hours on  working under  flag                          
+  ---------  -----  ------------  --------------------------------  -------  ----------------  --------  -------------  ------------------------------
+  ISO-305    RM1    Sione Fifita  Harbourside Milling               P-SF     2026-10-29 16:49      32.2                 no open permit for this person
+  ISO-310    BE2    Tom Baker     Harbourside Milling               P-TB     2026-10-30 05:01      20.0  P-2044                                       
+  ISO-311    SIL3   Hemi Tane     Tauranga Confined Space Services  P-HT     2026-10-30 21:01       4.0  P-2041                                       
+  ISO-311    SIL3   Paul Anders   Tauranga Confined Space Services  P-PA     2026-10-30 21:01       4.0  P-2041                                       
+  ISO-311    SIL3   Sione Fifita  Harbourside Milling               P-SF     2026-10-30 21:01       4.0  P-2041                                       
+  ISO-312    PK1    Kiri Ngata    Mount Electrical Contractors      P-KN     2026-10-30 19:01       6.0  P-2045                                       

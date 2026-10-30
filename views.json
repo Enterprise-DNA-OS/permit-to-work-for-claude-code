@@ -1,14 +1,34 @@
 [
   {
-    "name": "week",
-    "title": "This week",
-    "subtitle": "Permit to Work for Claude Code: what needs attention, rendered by npm run view",
+    "name": "board",
+    "title": "Permit board",
+    "subtitle": "Who is inside, what is live, what is isolated and what breaks a rule, rendered by npm run view",
     "sections": [
-      {
-        "title": "Needs attention",
-        "note": "TODO(author): point this at the industry's attention view (overdue, stuck, quiet).",
-        "sql": "select 'replace me' as item, 'TODO(author)' as why"
-      }
+      { "title": "Inside confined spaces now", "sql": "select permit, asset, asset_name, person, company, to_char(in_at, 'HH24:MI') in_at, minutes_in, coalesce(standby, 'NONE') standby from ptw.inside_now order by in_at" },
+      { "title": "Open permits", "note": "Expired permits first.", "sql": "select code, kind_name kind, area, coalesce(asset, '') asset, task, receiver, company, to_char(valid_to, 'YYYY-MM-DD HH24:MI') valid_to, minutes_left, crew_on, inside, case when not isolation_needed then '' when isolation_verified then 'verified' else 'NOT VERIFIED' end isolation, state from ptw.permit_board order by state = 'EXPIRED' desc, valid_to" },
+      { "title": "Rule breaches", "note": "Each rule and its source is in docs/compliance.md.", "sql": "select rule, ref, subject, detail from ptw.compliance_findings where severity = 'breach' order by rule, ref" },
+      { "title": "Isolations in place", "sql": "select code, asset, asset_name, status, isolator, points || ' of ' || asset_points points_locked, personal_locks_on, coalesce(open_permits, '') open_permits, hours_isolated from ptw.isolation_state where status <> 'removed' order by code" },
+      { "title": "Personal locks on", "sql": "select isolation, asset, person, company, lock_no, hours_on, flag from ptw.locks_on order by flag = '', isolation" }
+    ]
+  },
+  {
+    "name": "people",
+    "title": "People and contractors",
+    "subtitle": "Tickets, inductions and insurance: what has lapsed and what is about to",
+    "sections": [
+      { "title": "People on open permits without the ticket their role needs", "sql": "select permit, role, person, company, ticket, coalesce(expires_on::text, '') expired_on, state from ptw.role_needs where state <> 'ok' order by permit, role" },
+      { "title": "Lapsed or lapsing", "sql": "select person, company, ticket, coalesce(ref, '') ref, expires_on, days_left, state from ptw.ticket_status where state <> 'current' order by days_left nulls first" },
+      { "title": "Contractor companies", "sql": "select code, name, contact, insurance_expires_on insurance_to, prequalified_on, (select count(*) from ptw.people p where p.company_id = c.id and p.active) people from ptw.companies c where kind = 'contractor' order by insurance_expires_on nulls first" }
+    ]
+  },
+  {
+    "name": "history",
+    "title": "The last 90 days",
+    "subtitle": "Where the isolation hours went, and how permits were closed",
+    "sections": [
+      { "title": "Isolation hours by asset", "note": "The assets maintenance keeps going back to.", "sql": "select asset, name, area, isolations, hours_isolated, permits from ptw.asset_isolation_history where isolations > 0 order by hours_isolated desc" },
+      { "title": "Permits closed in the last 30 days", "sql": "select p.code, k.name kind, p.task, to_char(p.closed_at, 'YYYY-MM-DD HH24:MI') closed, coalesce(p.handback, '') handback from ptw.permits p join ptw.permit_kinds k on k.code = p.kind where p.status = 'closed' and p.closed_at >= ptw.site_now() - interval '30 days' order by p.closed_at desc" },
+      { "title": "Hot work fire watch", "sql": "select p.code, p.task, (extract(epoch from (p.fire_watch_end_at - p.work_ended_at)) / 60)::int fire_watch_minutes, (select fire_watch_minutes from ptw.settings) site_rule from ptw.permits p where p.kind = 'hot_work' and p.status = 'closed' order by p.closed_at desc" }
     ]
   }
 ]

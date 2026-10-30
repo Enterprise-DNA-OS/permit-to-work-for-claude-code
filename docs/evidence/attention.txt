@@ -1,0 +1,23 @@
+  area        item                              why                                                                     next                                                              
+  ----------  --------------------------------  ----------------------------------------------------------------------  ------------------------------------------------------------------
+  inside now  P-2041 Paul Anders                inside 36 min, standby Megan Hall                                       Know who is in before anything else changes                       
+  breach      permit P-2042                     contractor-induction: Liam Ward (Bay Steel Fabrication) induction e...  Induct them before they work                                      
+  breach      company BSF                       contractor-insurance: Bay Steel Fabrication has work on P-2042 and ...  Get the renewed certificate before more work                      
+  breach      permit P-2038                     fire-watch-short: Fire watch kept 20 minutes after the work stopped...  Talk to the receiver; check the area                              
+  breach      permit P-2041                     gas-test-stale: Last test 162 minutes ago; retest every 120.            Retest before anyone enters or the work goes on                   
+  breach      isolation ISO-311                 isolation-incomplete: 2 of 3 isolation points locked: SIL3-E2 (elec...  Lock the missing point, or stop the work on it                    
+  breach      permit P-2044                     isolation-not-verified: The linked isolation is applied but nobody ...  Stop work until the isolator proves zero energy and runs verify   
+  breach      isolation ISO-305                 lock-left-on: Personal lock P-SF on for 32.2 hours; Sione Fifita is...  Find the person; they remove their own lock                       
+  breach      permit P-2042 / P-2041            permit-conflict: Hot work and confined space entry in SILO at the s...  Suspend one permit until the other is done                        
+  breach      permit P-2045                     permit-expired: Expired 60 minutes ago and still issued. Close it, ...  Stop the work: close the permit, or suspend it and issue a new one
+  breach      permit P-2041                     ticket-expired: Paul Anders (Tauranga Confined Space Services) is c...  Swap the person, or record the renewed ticket                     
+  breach      permit P-2041                     ticket-expired: Dave Kingi (Harbourside Milling) is gas tester and ...  Swap the person, or record the renewed ticket                     
+  to issue    permit P-2046                     Drain boiler 1 and open the manhole for the annual inspection, star...  Line up isolation, gas test and people, then issue                
+  to issue    permit P-2047                     Replace filter bags from the dust collector roof, starts 2026-10-31...  Line up isolation, gas test and people, then issue                
+  warning     permit P-2044                     handover-missing: No handover for 20.0 hours; the shift is 12.          Record the shift handover                                         
+  warning     isolation ISO-305                 isolation-orphaned: Applied 32.5 hours and no open permit relies on...  Remove it, or link it to the next permit                          
+  renew       Megan Hall                        Confined space standby and rescue (Harbourside Milling) lapses in 1...  Book the refresher                                                
+  renew       Megan Hall                        Confined space entry (Harbourside Milling) lapses in 12 days            Book the refresher                                                
+  renew       Hemi Tane                         Site induction (Tauranga Confined Space Services) lapses in 20 days     Book the refresher                                                
+  renew       Kiri Ngata                        Electrical worker licence (Mount Electrical Contractors) lapses in ...  Book the refresher                                                
+  renew       Tauranga Confined Space Services  insurance certificate lapses in 20 days                                 Ask for the renewed certificate (draft-contractor)                
